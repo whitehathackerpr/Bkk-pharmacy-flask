@@ -70,7 +70,7 @@ BKK Pharmacy Management System is a state-of-the-art solution designed to revolu
 - Celery for background tasks
 
 ### Database & Storage
-- PostgreSQL 13+ (primary database)
+- mysql
 - Redis (caching layer)
 - AWS S3 (optional: media storage)
 
@@ -79,8 +79,7 @@ BKK Pharmacy Management System is a state-of-the-art solution designed to revolu
 ### Prerequisites
 Ensure you have the following installed:
 ```bash
-Python 3.8+
-PostgreSQL 13+
+requirements.txt
 Redis Server
 Node.js 14+
 ```
