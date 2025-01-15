@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/logo.png" alt="BKK Pharmacy Logo" width="200"/>
+  <img src="logo.png" alt="BKK Pharmacy Logo" width="200"/>
   <h1>BKK Pharmacy Management System</h1>
   <p>Enterprise-grade pharmacy management solution by <a href="https://4codex.com">4CODEX Technologies</a></p>
 
