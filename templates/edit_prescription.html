@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 style="text-align: center; color: #2b6b4d;">Edit Prescription</h2>
+    <form method="POST" action="/edit_prescription/{{ prescription.id }}">
+        <label for="patient_name">Patient Name</label>
+        <input type="text" id="patient_name" name="patient_name" value="{{ prescription.patient_name }}" required>
+
+        <label for="medication_id">Medication</label>
+        <select id="medication_id" name="medication_id" required>
+            {% for med in medications %}
+            <option value="{{ med.id }}" {% if med.id == prescription.medication_id %}selected{% endif %}>{{ med.name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="quantity">Quantity</label>
+        <input type="number" id="quantity" name="quantity" value="{{ prescription.quantity }}" required>
+
+        <label for="prescription_date">Prescription Date</label>
+        <input type="date" id="prescription_date" name="prescription_date" value="{{ prescription.prescription_date }}" required>
+
+        <button type="submit">Update Prescription</button>
+    </form>
+</div>
+{% endblock %}

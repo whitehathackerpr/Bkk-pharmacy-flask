@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 style="text-align: center; color: #2b6b4d;">Edit Medication</h2>
+    <form method="POST" action="/edit_medication/{{ medication.id }}">
+        <label for="med_name">Medication Name</label>
+        <input type="text" id="med_name" name="med_name" value="{{ medication.name }}" required>
+
+        <label for="med_price">Price (in USD)</label>
+        <input type="number" step="0.01" id="med_price" name="med_price" value="{{ medication.price }}" required>
+
+        <button type="submit">Update Medication</button>
+    </form>
+</div>
+{% endblock %}

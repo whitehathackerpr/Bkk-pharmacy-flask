@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 style="text-align: center; color: #2b6b4d;">Login to BKK Pharmacy</h2>
+    <form method="POST" action="/login">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+
+        <button type="submit">Login</button>
+        <p style="text-align: center; margin-top: 10px;">Don't have an account? <a href="{{ url_for('signup') }}" style="color: #2b6b4d;">Sign up</a></p>
+    </form>
+</div>
+{% endblock %}

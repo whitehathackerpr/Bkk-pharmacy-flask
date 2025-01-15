@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 style="text-align: center; color: #2b6b4d;">Generate Report</h2>
+    
+    <form method="POST" action="/generate_report">
+        <label for="report_type">Select Report Type</label>
+        <select id="report_type" name="report_type" required>
+            <option value="inventory">Inventory Report</option>
+            <option value="prescriptions">Prescription Report</option>
+        </select>
+        
+        <button type="submit">Generate Report</button>
+    </form>
+
+    {% if report_data %}
+    <h3 style="text-align: center; margin-top: 30px;">{{ report_title }}</h3>
+    <table style="margin-top: 20px;">
+        {% if report_type == 'inventory' %}
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Medication Name</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in report_data %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.name }}</td>
+                <td>${{ item.price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        {% elif report_type == 'prescriptions' %}
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Patient Name</th>
+                <th>Medication</th>
+                <th>Quantity</th>
+                <th>Prescription Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prescription in report_data %}
+            <tr>
+                <td>{{ prescription.id }}</td>
+                <td>{{ prescription.patient_name }}</td>
+                <td>{{ prescription.medication_name }}</td>
+                <td>{{ prescription.quantity }}</td>
+                <td>{{ prescription.prescription_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        {% endif %}
+    </table>
+    {% endif %}
+</div>
+{% endblock %}

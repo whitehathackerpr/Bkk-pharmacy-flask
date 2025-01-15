@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 style="text-align: center; color: #2b6b4d;">Inventory List</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Medication Name</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in inventory %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.name }}</td>
+                <td>${{ item.price }}</td>
+                <td>
+                    <a href="{{ url_for('edit_medication', id=item.id) }}" style="color: #2b6b4d;">Edit</a> | 
+                    <a href="{{ url_for('delete_medication', id=item.id) }}" style="color: red;">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('new_medication') }}">
+        <button style="width: 200px;">Add New Medication</button>
+    </a>
+</div>
+{% endblock %}
