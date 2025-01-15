@@ -15,7 +15,7 @@
 
 BKK Pharmacy Management System is a state-of-the-art solution designed to revolutionize pharmacy operations. Built with modern technologies and industry best practices, it offers a comprehensive suite of tools for inventory management, sales tracking, and business analytics.
 
-![Dashboard Preview](screenshots/dashboard.png)
+![Dashboard Preview](dash.png)
 
 ## ✨ Key Features
 
