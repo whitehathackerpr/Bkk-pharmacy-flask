@@ -1,0 +1,59 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+    .error-container {
+        text-align: center;
+        padding: 100px 20px;
+        min-height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(43, 107, 77, 0.1), rgba(31, 76, 55, 0.1));
+    }
+
+    .error-code {
+        font-size: 120px;
+        font-weight: bold;
+        color: #dc3545;
+        margin: 0;
+        line-height: 1;
+    }
+
+    .error-message {
+        font-size: 24px;
+        color: #666;
+        margin: 20px 0;
+    }
+
+    .error-description {
+        color: #888;
+        margin-bottom: 30px;
+    }
+
+    .back-button {
+        background: #2b6b4d;
+        color: white;
+        padding: 12px 30px;
+        border-radius: 25px;
+        text-decoration: none;
+        transition: background 0.3s;
+    }
+
+    .back-button:hover {
+        background: #1f4c37;
+        color: white;
+        text-decoration: none;
+    }
+</style>
+
+<div class="error-container">
+    <h1 class="error-code">500</h1>
+    <h2 class="error-message">Internal Server Error</h2>
+    <p class="error-description">Something went wrong. Please try again later.</p>
+    <a href="{{ url_for('home') }}" class="back-button">
+        <i class="fas fa-home"></i> Back to Home
+    </a>
+</div>
+{% endblock %} 

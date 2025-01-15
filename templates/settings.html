@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Settings</h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <!-- Notifications -->
+                        <div class="mb-4">
+                            <h5>Notifications</h5>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="low_stock" 
+                                       name="notifications" value="low_stock"
+                                       {% if 'low_stock' in settings.notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="low_stock">
+                                    Low Stock Alerts
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="sales" 
+                                       name="notifications" value="sales"
+                                       {% if 'sales' in settings.notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="sales">
+                                    Sales Reports
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="prescriptions" 
+                                       name="notifications" value="prescriptions"
+                                       {% if 'prescriptions' in settings.notifications %}checked{% endif %}>
+                                <label class="form-check-label" for="prescriptions">
+                                    New Prescriptions
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Theme -->
+                        <div class="mb-4">
+                            <h5>Theme</h5>
+                            <div class="form-check">
+                                <input type="radio" class="form-check-input" id="light" 
+                                       name="theme" value="light"
+                                       {% if settings.theme == 'light' %}checked{% endif %}>
+                                <label class="form-check-label" for="light">
+                                    Light Mode
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" class="form-check-input" id="dark" 
+                                       name="theme" value="dark"
+                                       {% if settings.theme == 'dark' %}checked{% endif %}>
+                                <label class="form-check-label" for="dark">
+                                    Dark Mode
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Language -->
+                        <div class="mb-4">
+                            <h5>Language</h5>
+                            <select class="form-select" name="language">
+                                <option value="en" {% if settings.language == 'en' %}selected{% endif %}>
+                                    English
+                                </option>
+                                <option value="fr" {% if settings.language == 'fr' %}selected{% endif %}>
+                                    French
+                                </option>
+                                <option value="es" {% if settings.language == 'es' %}selected{% endif %}>
+                                    Spanish
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Timezone -->
+                        <div class="mb-4">
+                            <h5>Timezone</h5>
+                            <select class="form-select" name="timezone">
+                                <option value="UTC" {% if settings.timezone == 'UTC' %}selected{% endif %}>
+                                    UTC
+                                </option>
+                                <option value="EST" {% if settings.timezone == 'EST' %}selected{% endif %}>
+                                    Eastern Time
+                                </option>
+                                <option value="CST" {% if settings.timezone == 'CST' %}selected{% endif %}>
+                                    Central Time
+                                </option>
+                                <option value="PST" {% if settings.timezone == 'PST' %}selected{% endif %}>
+                                    Pacific Time
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

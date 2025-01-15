@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+
+{% block title %}Add New Medication{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Add New Medication</h2>
+    
+    <form method="POST" action="{{ url_for('new_medication') }}">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Medication Name</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="generic_name" class="form-label">Generic Name</label>
+                    <input type="text" class="form-control" id="generic_name" name="generic_name">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="category" class="form-label">Category</label>
+                    <input type="text" class="form-control" id="category" name="category">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="price" class="form-label">Price</label>
+                    <input type="number" class="form-control" id="price" name="price" step="0.01" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="stock" class="form-label">Stock</label>
+                    <input type="number" class="form-control" id="stock" name="stock" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="min_stock" class="form-label">Minimum Stock</label>
+                    <input type="number" class="form-control" id="min_stock" name="min_stock" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="manufacturer" class="form-label">Manufacturer</label>
+                    <input type="text" class="form-control" id="manufacturer" name="manufacturer">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="expiry_date" class="form-label">Expiry Date</label>
+                    <input type="date" class="form-control" id="expiry_date" name="expiry_date" required>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Add Medication</button>
+            <a href="{{ url_for('list_inventory') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %} 

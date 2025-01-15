@@ -1,0 +1,130 @@
+{% extends "layout.html" %}
+
+{% block title %}Users Management{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Users Management</h2>
+        {% if session.role == 'admin' %}
+        <a href="{{ url_for('new_user') }}" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> Add New User
+        </a>
+        {% endif %}
+    </div>
+
+    {% if users %}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'primary' if user.role == 'admin' else 'secondary' }}">
+                                    {{ user.role|default('staff') }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if user.active else 'danger' }}">
+                                    {{ 'Active' if user.active else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td>{{ user.created_at }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('edit_user', user_id=user.id) }}" 
+                                       class="btn btn-sm btn-info" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% if session.get('user_id') != user.id %}
+                                    <button type="button" 
+                                            class="btn btn-sm btn-{{ 'danger' if user.active else 'success' }}"
+                                            onclick="toggleUserStatus({{ user.id }}, {{ user.active|default(true)|tojson }})"
+                                            title="{{ 'Deactivate' if user.active else 'Activate' }}">
+                                        <i class="fas fa-{{ 'ban' if user.active else 'check' }}"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i> No users found.
+    </div>
+    {% endif %}
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Action</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to change this user's status?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmAction">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let actionUserId = null;
+let actionStatus = null;
+
+function toggleUserStatus(userId, currentStatus) {
+    actionUserId = userId;
+    actionStatus = currentStatus;
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    modal.show();
+}
+
+document.getElementById('confirmAction').addEventListener('click', async function() {
+    try {
+        const response = await fetch(`/users/${actionUserId}/toggle-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            location.reload();
+        } else {
+            const data = await response.json();
+            alert(data.error || 'Failed to update user status');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while updating user status');
+    }
+});
+</script>
+{% endblock %} 

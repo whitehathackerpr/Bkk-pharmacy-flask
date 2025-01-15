@@ -1,22 +1,340 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BKK Pharmacy</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <nav>
-        <a href="{{ url_for('home') }}">Home</a>
-        <a href="{{ url_for('list_inventory') }}">Inventory</a>
-        <a href="{{ url_for('list_prescriptions') }}">Prescriptions</a>
-        <a href="{{ url_for('login') }}">Logout</a>
-    </nav>
+{% extends 'layout.html' %}
 
-    <div class="container">
-        {% block content %}
-        {% endblock %}
+{% block content %}
+<style>
+    .hero {
+        background: linear-gradient(135deg, #28a745, #218838);
+        color: white;
+        padding: 70px 20px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+        margin-bottom: 40px;
+    }
+
+    .hero h1 {
+        font-size: 3.5rem;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .hero p {
+        font-size: 1.3rem;
+        margin-bottom: 40px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .hero .btn {
+        background-color: white;
+        color: #28a745;
+        border: 2px solid transparent;
+        font-size: 1.2rem;
+        padding: 15px 30px;
+        border-radius: 30px;
+        transition: all 0.3s ease-in-out;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .hero .btn:hover {
+        background-color: transparent;
+        color: white;
+        border: 2px solid white;
+        transform: translateY(-3px);
+    }
+
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin: 40px 0;
+    }
+
+    .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        color: #28a745;
+        font-weight: bold;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .features-section {
+        margin: 60px 0;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        margin-top: 30px;
+    }
+
+    .feature-card {
+        background: white;
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(40, 167, 69, 0.15);
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        color: #28a745;
+        margin-bottom: 20px;
+    }
+
+    .quick-actions {
+        background: #f8f9fa;
+        padding: 40px;
+        border-radius: 15px;
+        margin-top: 40px;
+    }
+
+    .alert-section {
+        margin-top: 40px;
+        padding: 20px;
+        background: #fff3cd;
+        border-radius: 10px;
+        border-left: 5px solid #ffc107;
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        color: #28a745;
+        margin-bottom: 10px;
+    }
+
+    .stat-alert {
+        font-size: 0.8rem;
+        color: #dc3545;
+        margin-top: 5px;
+    }
+
+    .stat-subtext {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 5px;
+    }
+
+    .table {
+        background: white;
+        border-radius: 8px;
+    }
+
+    .list-group-item {
+        border-left: 4px solid #28a745;
+    }
+</style>
+
+<div class="hero">
+    <h1>Welcome to BKK Pharmacy</h1>
+    <p class="lead">Your comprehensive solution for pharmacy management. Handle inventory, prescriptions, sales, and deliveries with ease.</p>
+    <div class="hero-buttons">
+        <a class="btn btn-light" href="{{ url_for('list_inventory') }}">
+            <i class="fas fa-boxes"></i> Inventory
+        </a>
+        <a class="btn btn-light" href="{{ url_for('list_prescriptions') }}">
+            <i class="fas fa-prescription"></i> Prescriptions
+        </a>
+        <a class="btn btn-light" href="{{ url_for('list_sales') }}">
+            <i class="fas fa-cash-register"></i> Sales
+        </a>
+        <a class="btn btn-light" href="{{ url_for('report') }}">
+            <i class="fas fa-chart-bar"></i> Reports
+        </a>
     </div>
-</body>
-</html>
+</div>
+
+<!-- Stats Section -->
+<div class="stats-container">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-pills"></i>
+        </div>
+        <div class="stat-number">{{ total_medications }}</div>
+        <div class="stat-label">Total Medications</div>
+        {% if low_stock_count > 0 %}
+        <div class="stat-alert">
+            {{ low_stock_count }} items low on stock
+        </div>
+        {% endif %}
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-prescription"></i>
+        </div>
+        <div class="stat-number">{{ monthly_prescriptions }}</div>
+        <div class="stat-label">Prescriptions ({{ current_month }})</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-cash-register"></i>
+        </div>
+        <div class="stat-number">{{ monthly_sales }}</div>
+        <div class="stat-label">Monthly Sales ({{ current_month }})</div>
+        <div class="stat-subtext">{{ monthly_transactions }} transactions</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-truck"></i>
+        </div>
+        <div class="stat-number">{{ pending_deliveries }}</div>
+        <div class="stat-label">Pending Deliveries</div>
+        <div class="stat-subtext">Last 30 days</div>
+    </div>
+</div>
+
+<!-- Alert Section for Low Stock -->
+<div class="alert-section">
+    <h4><i class="fas fa-exclamation-triangle"></i> Low Stock Alert</h4>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Medication Name</th>
+                    <th>Current Stock</th>
+                    <th>Reorder Level</th>
+                    <th>Monthly Sales</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in low_stock_items %}
+                <tr>
+                    <td>{{ item.name }}</td>
+                    <td>
+                        <span class="badge bg-{{ 'danger' if item.quantity <= item.reorder_level else 'warning' }}">
+                            {{ item.quantity }}
+                        </span>
+                    </td>
+                    <td>{{ item.reorder_level }}</td>
+                    <td>{{ item.monthly_sales }}</td>
+                    <td>
+                        <a href="{{ url_for('edit_inventory', item_id=item.id) }}" 
+                           class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-plus-circle"></i> Restock
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Activities -->
+<div class="quick-actions mt-4">
+    <h4 class="mb-3"><i class="fas fa-history"></i> Recent Activities</h4>
+    <div class="list-group">
+        {% for activity in recent_activities %}
+        <div class="list-group-item">
+            <div class="d-flex w-100 justify-content-between">
+                <h6 class="mb-1">{{ activity[1] }}</h6>
+                <small>{{ activity[2].strftime('%I:%M %p') }}</small>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="features-section">
+    <h2 class="text-center mb-4" style="color: #28a745;">Key Features</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-pills"></i>
+            </div>
+            <h3>Inventory Management</h3>
+            <p>Track stock levels, expiry dates, and automatically generate purchase orders.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-truck"></i>
+            </div>
+            <h3>Delivery Tracking</h3>
+            <p>Monitor deliveries in real-time and manage delivery schedules efficiently.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Sales Analytics</h3>
+            <p>Generate detailed reports and analyze sales trends for better decision making.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Section -->
+<div class="quick-actions">
+    <h3 class="text-center mb-4">Quick Actions</h3>
+    <div class="row justify-content-center">
+        <div class="col-md-3 mb-3">
+            <a href="{{ url_for('new_medication') }}" class="btn btn-success w-100">
+                <i class="fas fa-plus-circle"></i> Add New Medication
+            </a>
+        </div>
+        <div class="col-md-3 mb-3">
+            <a href="{{ url_for('new_prescription') }}" class="btn btn-success w-100">
+                <i class="fas fa-file-medical"></i> New Prescription
+            </a>
+        </div>
+        <div class="col-md-3 mb-3">
+            <a href="{{ url_for('new_sale') }}" class="btn btn-success w-100">
+                <i class="fas fa-shopping-cart"></i> Record Sale
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add any JavaScript animations or interactions here
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate stats on scroll
+        const stats = document.querySelectorAll('.stat-number');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'countUp 2s ease-out forwards';
+                }
+            });
+        });
+        
+        stats.forEach(stat => observer.observe(stat));
+    });
+</script>
+{% endblock %}

@@ -1,13 +1,14 @@
-from flask import Flask
-from flask_mysqldb import MySQL
+import os
 
-app = Flask(__name__)
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY') or 'your_secret_key'
+    
+    # MySQL Database Configuration
+    MYSQL_HOST = 'localhost'  # MySQL host (use 'localhost' for local testing)
+    MYSQL_USER = 'root'  # Replace with your MySQL username
+    MYSQL_PASSWORD = '752002'  # Replace with your MySQL password
+    MYSQL_DB = 'bkk_pharmacy'  # Name of your MySQL database
+    MYSQL_CURSORCLASS = 'DictCursor'  # Return MySQL results as dictionaries
 
-# MySQL Configuration
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = '752002'
-app.config['MYSQL_DB'] = 'bkk_pharmacy'
-
-# Initialize MySQL
-mysql = MySQL(app)
+    # Other settings
+    DEBUG = True  

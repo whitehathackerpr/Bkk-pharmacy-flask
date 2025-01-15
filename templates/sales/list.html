@@ -1,0 +1,290 @@
+{% extends "layout.html" %}
+
+{% block title %}Sales{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Sales</h2>
+        <a href="{{ url_for('new_sale') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Sale
+        </a>
+    </div>
+    
+    {% if sales %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Medication</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td>{{ sale.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>{{ sale.customer_name }}</td>
+                    <td>{{ sale.medication_name }}</td>
+                    <td>{{ sale.quantity }}</td>
+                    <td>UGX {{ "{:,.2f}".format(sale.total_price) }}</td>
+                    <td>
+                        <span class="badge bg-{{ 'success' if sale.paid else 'warning' }}">
+                            {{ sale.payment_method }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-{{ 'success' if sale.delivery_status == 'delivered' else 'warning' }}">
+                            {{ sale.delivery_status }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-info" 
+                                    onclick="viewSaleDetails({{ sale.id }})"
+                                    title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            {% if not sale.paid %}
+                            <button class="btn btn-sm btn-success" 
+                                    onclick="markAsPaid({{ sale.id }})"
+                                    title="Mark as Paid">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            {% endif %}
+                            {% if sale.delivery_status == 'pending' %}
+                            <button class="btn btn-sm btn-primary" 
+                                    onclick="markAsDelivered({{ sale.id }})"
+                                    title="Mark as Delivered">
+                                <i class="fas fa-truck"></i>
+                            </button>
+                            {% endif %}
+                            <button class="btn btn-sm btn-warning" 
+                                    onclick="editSale({{ sale.id }})"
+                                    title="Edit Sale">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p>No sales found.</p>
+    {% endif %}
+</div>
+
+<!-- Edit Sale Modal -->
+<div class="modal fade" id="editSaleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Sale</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editSaleForm">
+                    <input type="hidden" id="saleId" name="sale_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Customer</label>
+                        <input type="text" class="form-control" id="customerName" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Total Amount</label>
+                        <input type="text" class="form-control" id="totalAmount" readonly>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Payment Method</label>
+                        <select class="form-select" id="paymentMethod" name="payment_method">
+                            <option value="cash">Cash</option>
+                            <option value="mobile_money">Mobile Money</option>
+                            <option value="card">Card</option>
+                            <option value="insurance">Insurance</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Payment Status</label>
+                        <select class="form-select" id="paymentStatus" name="payment_status">
+                            <option value="paid">Paid</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Delivery Status</label>
+                        <select class="form-select" id="deliveryStatus" name="delivery_status">
+                            <option value="pending">Pending</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="updateSale()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let editModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    editModal = new bootstrap.Modal(document.getElementById('editSaleModal'));
+});
+
+function viewSaleDetails(saleId) {
+    // Fetch sale details
+    fetch(`/sales/${saleId}/details`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show details in modal
+                document.getElementById('customerName').value = data.sale.customer_name;
+                document.getElementById('totalAmount').value = `UGX ${data.sale.total_price.toLocaleString()}`;
+                editModal.show();
+            } else {
+                alert('Error loading sale details');
+            }
+        });
+}
+
+function markAsPaid(saleId) {
+    if (confirm('Mark this sale as paid?')) {
+        fetch(`/sales/${saleId}/mark-paid`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Sale marked as paid successfully!');
+                window.location.reload();
+            } else {
+                alert('Error updating payment status');
+            }
+        });
+    }
+}
+
+function markAsDelivered(saleId) {
+    if (confirm('Mark this sale as delivered?')) {
+        fetch(`/sales/${saleId}/mark-delivered`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Sale marked as delivered successfully!');
+                window.location.reload();
+            } else {
+                alert('Error updating delivery status');
+            }
+        });
+    }
+}
+
+function editSale(saleId) {
+    fetch(`/sales/${saleId}/details`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Populate modal with sale data
+                document.getElementById('saleId').value = data.sale.id;
+                document.getElementById('customerName').value = data.sale.customer_name;
+                document.getElementById('totalAmount').value = `UGX ${data.sale.total_price.toLocaleString()}`;
+                document.getElementById('paymentMethod').value = data.sale.payment_method;
+                document.getElementById('paymentStatus').value = data.sale.paid ? 'paid' : 'pending';
+                document.getElementById('deliveryStatus').value = data.sale.delivery_status;
+                document.getElementById('notes').value = data.sale.notes || '';
+                
+                editModal.show();
+            } else {
+                alert('Error loading sale details');
+            }
+        });
+}
+
+function updateSale() {
+    const formData = new FormData(document.getElementById('editSaleForm'));
+    const saleId = formData.get('sale_id');
+    
+    fetch(`/sales/${saleId}/update`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Sale updated successfully!');
+            window.location.reload();
+        } else {
+            alert('Error updating sale: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating sale. Please try again.');
+    });
+}
+</script>
+
+<style>
+.btn-group {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-group .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.modal-content {
+    border-radius: 10px;
+}
+
+.modal-header {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 10px 10px 0 0;
+}
+
+.btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+.form-control:read-only {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %} 

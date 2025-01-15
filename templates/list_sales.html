@@ -2,13 +2,13 @@
 
 {% block content %}
 <style>
-    .prescriptions-container {
+    .sales-container {
         margin: 2rem auto;
         max-width: 1200px;
         padding: 0 1rem;
     }
 
-    .prescriptions-header {
+    .sales-header {
         background: white;
         padding: 1.5rem;
         border-radius: 10px;
@@ -33,7 +33,7 @@
         margin: 0;
     }
 
-    .btn-create {
+    .btn-new-sale {
         background-color: #2b6b4d;
         color: white;
         padding: 0.8rem 1.5rem;
@@ -45,7 +45,7 @@
         transition: all 0.3s ease;
     }
 
-    .btn-create:hover {
+    .btn-new-sale:hover {
         background-color: #1f4c37;
         transform: translateY(-2px);
         color: white;
@@ -100,7 +100,7 @@
         border-radius: 8px;
     }
 
-    .prescriptions-table {
+    .sales-table {
         background: white;
         border-radius: 10px;
         overflow: hidden;
@@ -132,19 +132,24 @@
         font-size: 0.9rem;
     }
 
-    .status-active {
+    .status-paid {
         background-color: #d4edda;
         color: #155724;
     }
 
-    .status-completed {
-        background-color: #cce5ff;
-        color: #004085;
-    }
-
-    .status-cancelled {
+    .status-unpaid {
         background-color: #f8d7da;
         color: #721c24;
+    }
+
+    .delivery-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .delivery-delivered {
+        background-color: #cce5ff;
+        color: #004085;
     }
 
     .action-buttons {
@@ -177,19 +182,18 @@
         background-color: #dc3545;
     }
 
+    .btn-deliver {
+        background-color: #28a745;
+    }
+
     .btn-action:hover {
         transform: translateY(-2px);
         color: white;
     }
 
-    .patient-name {
-        color: #2b6b4d;
+    .price {
         font-weight: 600;
-        text-decoration: none;
-    }
-
-    .patient-name:hover {
-        text-decoration: underline;
+        color: #2b6b4d;
     }
 
     .pagination {
@@ -197,51 +201,69 @@
         display: flex;
         justify-content: center;
     }
+
+    .chart-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
 </style>
 
-<div class="prescriptions-container">
-    <div class="prescriptions-header">
+<div class="sales-container">
+    <div class="sales-header">
         <div class="header-content">
             <div class="header-title">
-                <h2>Prescriptions Management</h2>
-                <p>View and manage patient prescriptions</p>
+                <h2>Sales Management</h2>
+                <p>Track and manage your pharmacy sales</p>
             </div>
-            <a href="{{ url_for('new_prescription') }}" class="btn-create">
-                <i class="fas fa-plus"></i> Create New Prescription
+            <a href="{{ url_for('new_sale') }}" class="btn-new-sale">
+                <i class="fas fa-plus"></i> New Sale
             </a>
         </div>
     </div>
 
     <div class="stats-cards">
         <div class="stat-card">
-            <div class="stat-number">{{ total_prescriptions }}</div>
-            <div class="stat-label">Total Prescriptions</div>
+            <div class="stat-number">UGX {{ "{:,.0f}".format(today_sales) }}</div>
+            <div class="stat-label">Today's Sales</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">{{ active_prescriptions }}</div>
-            <div class="stat-label">Active Prescriptions</div>
+            <div class="stat-number">{{ total_sales_count }}</div>
+            <div class="stat-label">Total Transactions</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">{{ today_prescriptions }}</div>
-            <div class="stat-label">Today's Prescriptions</div>
+            <div class="stat-number">{{ pending_deliveries }}</div>
+            <div class="stat-label">Pending Deliveries</div>
         </div>
         <div class="stat-card">
-            <div class="stat-number">{{ completed_prescriptions }}</div>
-            <div class="stat-label">Completed</div>
+            <div class="stat-number">{{ unpaid_count }}</div>
+            <div class="stat-label">Unpaid Sales</div>
         </div>
+    </div>
+
+    <div class="chart-container">
+        <canvas id="salesChart"></canvas>
     </div>
 
     <div class="filters-section">
         <div class="filters-grid">
             <div class="filter-item">
-                <input type="text" id="searchInput" placeholder="Search patient name...">
+                <input type="text" id="searchInput" placeholder="Search patient/medication...">
             </div>
             <div class="filter-item">
-                <select id="statusFilter">
-                    <option value="">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                <select id="paymentFilter">
+                    <option value="">All Payment Status</option>
+                    <option value="paid">Paid</option>
+                    <option value="unpaid">Unpaid</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <select id="deliveryFilter">
+                    <option value="">All Delivery Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="delivered">Delivered</option>
                 </select>
             </div>
             <div class="filter-item">
@@ -250,47 +272,57 @@
         </div>
     </div>
 
-    <div class="prescriptions-table">
+    <div class="sales-table">
         <table class="table table-hover">
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Patient Name</th>
-                    <th>Medication</th>
+                    <th>Patient/Medication</th>
                     <th>Quantity</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th>Doctor</th>
+                    <th>Total Price</th>
+                    <th>Payment Status</th>
+                    <th>Delivery Status</th>
+                    <th>Sale Date</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for prescription in prescriptions %}
+                {% for sale in sales %}
                 <tr>
-                    <td>#{{ prescription.id }}</td>
+                    <td>#{{ sale.id }}</td>
+                    <td>{{ sale.patient_name or sale.medication_name }}</td>
+                    <td>{{ sale.quantity }}</td>
+                    <td class="price">UGX {{ "{:,.0f}".format(sale.total_price) }}</td>
                     <td>
-                        <a href="#" class="patient-name">{{ prescription.patient_name }}</a>
-                    </td>
-                    <td>{{ prescription.medication_name }}</td>
-                    <td>{{ prescription.quantity }}</td>
-                    <td>{{ prescription.date.strftime('%Y-%m-%d') }}</td>
-                    <td>
-                        <span class="status-badge status-{{ prescription.status.lower() }}">
-                            {{ prescription.status }}
+                        <span class="status-badge status-{{ 'paid' if sale.paid else 'unpaid' }}">
+                            {{ 'Paid' if sale.paid else 'Unpaid' }}
                         </span>
                     </td>
-                    <td>{{ prescription.doctor_name }}</td>
+                    <td>
+                        <span class="status-badge delivery-{{ sale.delivery_status.lower() }}">
+                            {{ sale.delivery_status }}
+                        </span>
+                    </td>
+                    <td>{{ sale.sale_date.strftime('%Y-%m-%d') }}</td>
                     <td>
                         <div class="action-buttons">
                             <a href="#" class="btn-action btn-view" title="View Details">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{{ url_for('edit_prescription', id=prescription.id) }}" 
-                               class="btn-action btn-edit" title="Edit">
-                                <i class="fas fa-edit"></i>
+                            {% if not sale.paid %}
+                            <button class="btn-action btn-edit" 
+                                    onclick="markAsPaid({{ sale.id }})" title="Mark as Paid">
+                                <i class="fas fa-dollar-sign"></i>
+                            </button>
+                            {% endif %}
+                            {% if sale.delivery_status == 'pending' %}
+                            <a href="{{ url_for('mark_as_delivered', sale_id=sale.id) }}" 
+                               class="btn-action btn-deliver" title="Mark as Delivered">
+                                <i class="fas fa-truck"></i>
                             </a>
+                            {% endif %}
                             <button class="btn-action btn-delete" 
-                                    onclick="deletePrescription({{ prescription.id }})" title="Delete">
+                                    onclick="deleteSale({{ sale.id }})" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -304,13 +336,13 @@
     <nav class="pagination">
         <ul class="pagination">
             <li class="page-item {% if not has_prev %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('list_prescriptions', page=page-1) if has_prev }}">Previous</a>
+                <a class="page-link" href="{{ url_for('list_sales', page=page-1) if has_prev }}">Previous</a>
             </li>
             <li class="page-item active">
                 <span class="page-link">{{ page }}</span>
             </li>
             <li class="page-item {% if not has_next %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('list_prescriptions', page=page+1) if has_next }}">Next</a>
+                <a class="page-link" href="{{ url_for('list_sales', page=page+1) if has_next }}">Next</a>
             </li>
         </ul>
     </nav>
@@ -325,7 +357,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete this prescription?
+                Are you sure you want to delete this sale record?
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -339,26 +371,92 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    // Sales Chart
+    var ctx = document.getElementById('salesChart').getContext('2d');
+    var salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ dates|tojson|safe }},
+            datasets: [{
+                label: 'Daily Sales',
+                data: {{ daily_sales|tojson|safe }},
+                borderColor: '#2b6b4d',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Sales Count Chart
+    var ctxCount = document.getElementById('salesCountChart').getContext('2d');
+    var salesCountChart = new Chart(ctxCount, {
+        type: 'bar',
+        data: {
+            labels: {{ dates|tojson|safe }},
+            datasets: [{
+                label: 'Number of Sales',
+                data: {{ sales_counts|tojson|safe }},
+                backgroundColor: '#2b6b4d80',
+                borderColor: '#2b6b4d',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
     // Search functionality
     document.getElementById('searchInput').addEventListener('input', function(e) {
         const searchText = e.target.value.toLowerCase();
         const rows = document.querySelectorAll('tbody tr');
         
         rows.forEach(row => {
-            const patientName = row.querySelector('.patient-name').textContent.toLowerCase();
-            row.style.display = patientName.includes(searchText) ? '' : 'none';
+            const content = row.children[1].textContent.toLowerCase();
+            row.style.display = content.includes(searchText) ? '' : 'none';
         });
     });
 
-    // Status filter
-    document.getElementById('statusFilter').addEventListener('change', function(e) {
+    // Payment status filter
+    document.getElementById('paymentFilter').addEventListener('change', function(e) {
         const status = e.target.value.toLowerCase();
         const rows = document.querySelectorAll('tbody tr');
         
         rows.forEach(row => {
-            const prescriptionStatus = row.querySelector('.status-badge').textContent.trim().toLowerCase();
-            if (!status || prescriptionStatus === status) {
+            const paymentStatus = row.querySelector('.status-badge').textContent.trim().toLowerCase();
+            if (!status || paymentStatus === status) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+
+    // Delivery status filter
+    document.getElementById('deliveryFilter').addEventListener('change', function(e) {
+        const status = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            const deliveryStatus = row.children[5].textContent.trim().toLowerCase();
+            if (!status || deliveryStatus === status) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
@@ -372,8 +470,8 @@
         const rows = document.querySelectorAll('tbody tr');
         
         rows.forEach(row => {
-            const prescriptionDate = row.children[4].textContent;
-            if (!selectedDate || prescriptionDate === selectedDate) {
+            const saleDate = row.children[6].textContent;
+            if (!selectedDate || saleDate === selectedDate) {
                 row.style.display = '';
             } else {
                 row.style.display = 'none';
@@ -381,12 +479,19 @@
         });
     });
 
-    // Delete prescription
-    function deletePrescription(id) {
+    // Delete sale
+    function deleteSale(id) {
         const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
         const deleteForm = document.getElementById('deleteForm');
-        deleteForm.action = `/delete_prescription/${id}`;
+        deleteForm.action = `/delete_sale/${id}`;
         modal.show();
+    }
+
+    // Mark as paid
+    function markAsPaid(id) {
+        if (confirm('Mark this sale as paid?')) {
+            window.location.href = `/mark_as_paid/${id}`;
+        }
     }
 </script>
 {% endblock %}

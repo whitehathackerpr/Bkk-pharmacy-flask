@@ -1,0 +1,151 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Dashboard</h2>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Sales</h5>
+                    <h3 class="card-text">{{ today_stats.total_sales }}</h3>
+                    <p class="mb-0">UGX {{ "{:,.2f}".format(today_stats.total_revenue) }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Total Medications</h5>
+                    <h3 class="card-text">{{ total_medications }}</h3>
+                    <p class="mb-0">In inventory</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Prescriptions</h5>
+                    <h3 class="card-text">{{ pending_prescriptions }}</h3>
+                    <p class="mb-0">Need attention</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Items Sold Today</h5>
+                    <h3 class="card-text">{{ today_stats.total_items }}</h3>
+                    <p class="mb-0">Total quantity</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Low Stock Alert -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">Low Stock Alert</h5>
+                </div>
+                <div class="card-body">
+                    {% if low_stock_items %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Medication</th>
+                                    <th>Current Stock</th>
+                                    <th>Min Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in low_stock_items %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.stock }}</td>
+                                    <td>{{ item.min_stock }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="mb-0">No low stock items.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Sales -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Recent Sales</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_sales %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Medication</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sale in recent_sales %}
+                                <tr>
+                                    <td>{{ sale.created_at.strftime('%H:%M') }}</td>
+                                    <td>{{ sale.medication_name }}</td>
+                                    <td>UGX {{ "{:,.2f}".format(sale.total_price) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="mb-0">No recent sales.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="btn-group">
+                        <a href="{{ url_for('new_sale') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> New Sale
+                        </a>
+                        <a href="{{ url_for('new_prescription') }}" class="btn btn-success">
+                            <i class="fas fa-prescription"></i> New Prescription
+                        </a>
+                        <a href="{{ url_for('new_medication') }}" class="btn btn-info">
+                            <i class="fas fa-pills"></i> Add Medication
+                        </a>
+                        <a href="{{ url_for('report') }}" class="btn btn-warning">
+                            <i class="fas fa-chart-bar"></i> View Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

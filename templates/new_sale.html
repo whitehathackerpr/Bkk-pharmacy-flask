@@ -1,0 +1,362 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+    .sale-form-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #2b6b4d, #1f4c37);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+    }
+
+    .card-header h2 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .card-header p {
+        margin: 0.5rem 0 0;
+        opacity: 0.9;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .section-title {
+        color: #2b6b4d;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+
+    .medication-info {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+
+    .medication-info p {
+        margin: 0.5rem 0;
+        color: #666;
+    }
+
+    .price-info {
+        background: #e9ecef;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-top: 1.5rem;
+    }
+
+    .price-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+    }
+
+    .price-row.total {
+        border-top: 2px solid #dee2e6;
+        padding-top: 0.5rem;
+        margin-top: 0.5rem;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+    .payment-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .payment-method {
+        padding: 1rem;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .payment-method:hover {
+        border-color: #2b6b4d;
+    }
+
+    .payment-method.selected {
+        background: #2b6b4d;
+        color: white;
+        border-color: #2b6b4d;
+    }
+
+    .payment-method i {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-submit {
+        background-color: #2b6b4d;
+        color: white;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        width: 100%;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        background-color: #1f4c37;
+        transform: translateY(-2px);
+    }
+
+    .discount-badge {
+        background: #dc3545;
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+    }
+</style>
+
+<div class="sale-form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>New Sale</h2>
+            <p>Create a new sales record</p>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('new_sale') }}" id="saleForm">
+                <!-- Sale Type Selection -->
+                <div class="form-section">
+                    <h5 class="section-title">Sale Type</h5>
+                    <div class="form-group">
+                        <select id="sale_type" class="form-control" onchange="toggleSaleType()">
+                            <option value="direct">Direct Sale</option>
+                            <option value="prescription">Prescription Sale</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Direct Sale Section -->
+                <div id="directSaleSection" class="form-section">
+                    <h5 class="section-title">Medication Selection</h5>
+                    <div class="form-group">
+                        <label for="medication_id">Select Medication</label>
+                        <select id="medication_id" name="medication_id" class="form-control" 
+                                onchange="updateMedicationInfo()">
+                            <option value="">Choose a medication...</option>
+                            {% for medication in medications %}
+                            <option value="{{ medication.id }}" 
+                                    data-price="{{ medication.price }}"
+                                    data-stock="{{ medication.stock }}">
+                                {{ medication.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="medication-info" id="medicationInfo" style="display: none;">
+                            <p>Available Stock: <span id="availableStock">0</span></p>
+                            <p>Unit Price: <span id="unitPrice">UGX 0</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prescription Section -->
+                <div id="prescriptionSection" class="form-section" style="display: none;">
+                    <h5 class="section-title">Prescription Details</h5>
+                    <div class="form-group">
+                        <label for="prescription_id">Select Prescription</label>
+                        <select id="prescription_id" name="prescription_id" class="form-control"
+                                onchange="updatePrescriptionInfo()">
+                            <option value="">Choose a prescription...</option>
+                            {% for prescription in prescriptions %}
+                            <option value="{{ prescription.id }}"
+                                    data-medication="{{ prescription.medication_name }}"
+                                    data-quantity="{{ prescription.quantity }}">
+                                {{ prescription.patient_name }} - {{ prescription.medication_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Quantity and Price -->
+                <div class="form-section">
+                    <h5 class="section-title">Quantity and Price</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="quantity">Quantity</label>
+                                <input type="number" id="quantity" name="quantity" 
+                                       class="form-control" required min="1"
+                                       onchange="calculateTotal()">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="discount">Discount (%)</label>
+                                <input type="number" id="discount" name="discount" 
+                                       class="form-control" min="0" max="100" value="0"
+                                       onchange="calculateTotal()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="price-info">
+                        <div class="price-row">
+                            <span>Subtotal:</span>
+                            <span id="subtotal">UGX 0</span>
+                        </div>
+                        <div class="price-row">
+                            <span>Discount:</span>
+                            <span id="discountAmount">UGX 0</span>
+                        </div>
+                        <div class="price-row total">
+                            <span>Total:</span>
+                            <span id="total">UGX 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Details -->
+                <div class="form-section">
+                    <h5 class="section-title">Payment Details</h5>
+                    <div class="payment-options">
+                        <div class="payment-method" onclick="selectPayment('cash')">
+                            <i class="fas fa-money-bill-wave"></i>
+                            <div>Cash</div>
+                        </div>
+                        <div class="payment-method" onclick="selectPayment('mobile_money')">
+                            <i class="fas fa-mobile-alt"></i>
+                            <div>Mobile Money</div>
+                        </div>
+                        <div class="payment-method" onclick="selectPayment('card')">
+                            <i class="fas fa-credit-card"></i>
+                            <div>Card</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="payment_method" name="payment_method">
+
+                    <div class="form-check mt-3">
+                        <input type="checkbox" id="paid" name="paid" class="form-check-input">
+                        <label class="form-check-label" for="paid">Mark as paid</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-check-circle"></i> Complete Sale
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleSaleType() {
+        const saleType = document.getElementById('sale_type').value;
+        const directSection = document.getElementById('directSaleSection');
+        const prescriptionSection = document.getElementById('prescriptionSection');
+        
+        if (saleType === 'direct') {
+            directSection.style.display = 'block';
+            prescriptionSection.style.display = 'none';
+        } else {
+            directSection.style.display = 'none';
+            prescriptionSection.style.display = 'block';
+        }
+        
+        // Reset values
+        calculateTotal();
+    }
+
+    function updateMedicationInfo() {
+        const select = document.getElementById('medication_id');
+        const info = document.getElementById('medicationInfo');
+        
+        if (select.value) {
+            const option = select.options[select.selectedIndex];
+            document.getElementById('availableStock').textContent = option.dataset.stock;
+            document.getElementById('unitPrice').textContent = `UGX ${option.dataset.price}`;
+            info.style.display = 'block';
+        } else {
+            info.style.display = 'none';
+        }
+        
+        calculateTotal();
+    }
+
+    function calculateTotal() {
+        const quantity = parseInt(document.getElementById('quantity').value) || 0;
+        const discount = parseInt(document.getElementById('discount').value) || 0;
+        let unitPrice = 0;
+        
+        if (document.getElementById('sale_type').value === 'direct') {
+            const select = document.getElementById('medication_id');
+            if (select.value) {
+                unitPrice = parseFloat(select.options[select.selectedIndex].dataset.price);
+            }
+        } else {
+            // Handle prescription price calculation
+        }
+        
+        const subtotal = quantity * unitPrice;
+        const discountAmount = (subtotal * discount) / 100;
+        const total = subtotal - discountAmount;
+        
+        document.getElementById('subtotal').textContent = `UGX ${subtotal.toFixed(2)}`;
+        document.getElementById('discountAmount').textContent = `UGX ${discountAmount.toFixed(2)}`;
+        document.getElementById('total').textContent = `UGX ${total.toFixed(2)}`;
+    }
+
+    function selectPayment(method) {
+        document.querySelectorAll('.payment-method').forEach(el => {
+            el.classList.remove('selected');
+        });
+        event.currentTarget.classList.add('selected');
+        document.getElementById('payment_method').value = method;
+    }
+
+    // Form validation
+    document.getElementById('saleForm').addEventListener('submit', function(e) {
+        if (!document.getElementById('payment_method').value) {
+            e.preventDefault();
+            alert('Please select a payment method');
+            return;
+        }
+        
+        const quantity = parseInt(document.getElementById('quantity').value);
+        const stock = parseInt(document.getElementById('availableStock').textContent);
+        
+        if (quantity > stock) {
+            e.preventDefault();
+            alert('Quantity cannot exceed available stock');
+            return;
+        }
+    });
+</script>
+{% endblock %}

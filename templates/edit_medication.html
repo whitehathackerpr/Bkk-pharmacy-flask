@@ -1,16 +1,284 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container">
-    <h2 style="text-align: center; color: #2b6b4d;">Edit Medication</h2>
-    <form method="POST" action="/edit_medication/{{ medication.id }}">
-        <label for="med_name">Medication Name</label>
-        <input type="text" id="med_name" name="med_name" value="{{ medication.name }}" required>
+<style>
+    .edit-medication-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: white;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
 
-        <label for="med_price">Price (in USD)</label>
-        <input type="number" step="0.01" id="med_price" name="med_price" value="{{ medication.price }}" required>
+    .edit-medication-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #2b6b4d;
+    }
 
-        <button type="submit">Update Medication</button>
+    .edit-medication-header h2 {
+        color: #2b6b4d;
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .edit-medication-header p {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #2b6b4d;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #2b6b4d;
+        box-shadow: 0 0 0 0.2rem rgba(43, 107, 77, 0.25);
+    }
+
+    .input-group {
+        position: relative;
+    }
+
+    .input-group-text {
+        background-color: #2b6b4d;
+        color: white;
+        border: none;
+    }
+
+    .btn-container {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 12px 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        border-radius: 8px;
+    }
+
+    .btn-success {
+        background-color: #2b6b4d;
+        border: none;
+        flex: 1;
+    }
+
+    .btn-success:hover {
+        background-color: #1f4c37;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border: none;
+        flex: 1;
+    }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border: none;
+    }
+
+    .alert {
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .medication-image {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 10px;
+        margin: 0 auto 1rem;
+        display: block;
+    }
+
+    .image-upload {
+        margin-bottom: 1.5rem;
+    }
+
+    .custom-file-upload {
+        border: 2px dashed #2b6b4d;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        cursor: pointer;
+        margin-bottom: 1rem;
+    }
+
+    .custom-file-upload i {
+        font-size: 2rem;
+        color: #2b6b4d;
+        margin-bottom: 0.5rem;
+    }
+</style>
+
+<div class="edit-medication-container">
+    <div class="edit-medication-header">
+        <h2>Edit Medication</h2>
+        <p>Update medication details and inventory information</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/edit_medication/{{ medication.id }}" enctype="multipart/form-data">
+        <!-- Image Upload Section -->
+        <div class="image-upload">
+            {% if medication.image_url %}
+                <img src="{{ medication.image_url }}" alt="{{ medication.name }}" class="medication-image">
+            {% endif %}
+            <label class="custom-file-upload">
+                <input type="file" name="medication_image" accept="image/*" style="display: none;">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <div>Click to upload new image</div>
+            </label>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="med_name">Medication Name</label>
+                    <input type="text" id="med_name" name="med_name" class="form-control" 
+                           value="{{ medication.name }}" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="med_generic_name">Generic Name</label>
+                    <input type="text" id="med_generic_name" name="med_generic_name" 
+                           class="form-control" value="{{ medication.generic_name }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="med_price">Price (UGX)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">UGX</span>
+                        <input type="number" step="0.01" id="med_price" name="med_price" 
+                               class="form-control" value="{{ medication.price }}" required>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="med_quantity">Current Stock</label>
+                    <input type="number" id="med_quantity" name="med_quantity" 
+                           class="form-control" value="{{ medication.quantity }}" required>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="med_description">Description</label>
+            <textarea id="med_description" name="med_description" class="form-control" 
+                      rows="3">{{ medication.description }}</textarea>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="med_category">Category</label>
+                    <select id="med_category" name="med_category" class="form-control">
+                        <option value="tablets" {% if medication.category == 'tablets' %}selected{% endif %}>Tablets</option>
+                        <option value="syrup" {% if medication.category == 'syrup' %}selected{% endif %}>Syrup</option>
+                        <option value="injection" {% if medication.category == 'injection' %}selected{% endif %}>Injection</option>
+                        <option value="cream" {% if medication.category == 'cream' %}selected{% endif %}>Cream</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="med_expiry">Expiry Date</label>
+                    <input type="date" id="med_expiry" name="med_expiry" 
+                           class="form-control" value="{{ medication.expiry_date }}">
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Update Medication
+            </button>
+            <a href="{{ url_for('list_inventory') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
     </form>
+
+    <div class="mt-4">
+        <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            <i class="fas fa-trash"></i> Delete Medication
+        </button>
+    </div>
 </div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete {{ medication.name }}? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('delete_medication', id=medication.id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Preview image before upload
+    document.querySelector('input[type="file"]').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.querySelector('.medication-image').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
 {% endblock %}

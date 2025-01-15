@@ -1,0 +1,112 @@
+-- Create the database
+CREATE DATABASE IF NOT EXISTS bkk_pharmacy;
+USE bkk_pharmacy;
+
+-- Users table
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('admin', 'staff', 'pharmacist') NOT NULL,
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Activity logs table
+CREATE TABLE activity_logs (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    description TEXT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Inventory/Medications table
+CREATE TABLE inventory (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    generic_name VARCHAR(100),
+    category VARCHAR(50),
+    description TEXT,
+    unit_price DECIMAL(10,2) NOT NULL,
+    quantity INT NOT NULL DEFAULT 0,
+    reorder_level INT NOT NULL,
+    manufacturer VARCHAR(100),
+    expiry_date DATE,
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Prescriptions table
+CREATE TABLE prescriptions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    patient_name VARCHAR(100) NOT NULL,
+    patient_age INT,
+    patient_contact VARCHAR(20),
+    medication_id INT NOT NULL,
+    quantity INT NOT NULL,
+    dosage VARCHAR(100),
+    doctor_name VARCHAR(100),
+    notes TEXT,
+    status ENUM('pending', 'active', 'completed', 'cancelled') DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (medication_id) REFERENCES inventory(id)
+);
+
+-- Sales table
+CREATE TABLE sales (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    prescription_id INT,
+    customer_name VARCHAR(100),
+    customer_contact VARCHAR(20),
+    total_price DECIMAL(10,2) NOT NULL,
+    discount DECIMAL(10,2) DEFAULT 0,
+    payment_method ENUM('cash', 'card', 'mobile_money') NOT NULL,
+    payment_status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending',
+    delivery_status ENUM('pending', 'delivered', 'cancelled') DEFAULT 'pending',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (prescription_id) REFERENCES prescriptions(id)
+);
+
+-- Sales items table
+CREATE TABLE sales_items (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    sale_id INT NOT NULL,
+    item_id INT NOT NULL,
+    quantity INT NOT NULL,
+    unit_price DECIMAL(10,2) NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sale_id) REFERENCES sales(id),
+    FOREIGN KEY (item_id) REFERENCES inventory(id)
+);
+
+-- User settings table
+CREATE TABLE user_settings (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT UNIQUE NOT NULL,
+    notifications VARCHAR(255) DEFAULT 'low_stock,sales',
+    theme ENUM('light', 'dark') DEFAULT 'light',
+    language VARCHAR(10) DEFAULT 'en',
+    timezone VARCHAR(50) DEFAULT 'UTC',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Create indexes for better performance
+CREATE INDEX idx_inventory_name ON inventory(name);
+CREATE INDEX idx_sales_created_at ON sales(created_at);
+CREATE INDEX idx_prescriptions_status ON prescriptions(status);
+CREATE INDEX idx_activity_logs_type ON activity_logs(type);
+
+-- Insert default admin user (password: admin123)
+INSERT INTO users (username, email, password, role) 
+VALUES ('admin', 'admin@example.com', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J2YrInuim', 'admin');

@@ -1,16 +1,295 @@
-{% extends "layout.html" %}
+{% extends 'layout.html' %}
 
 {% block content %}
-<div class="container">
-    <h2 style="text-align: center; color: #2b6b4d;">Add New Medication</h2>
-    <form method="POST" action="/new_medication">
-        <label for="med_name">Medication Name</label>
-        <input type="text" id="med_name" name="med_name" placeholder="Enter medication name" required>
+<style>
+    .medication-form-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
 
-        <label for="med_price">Price (in USD)</label>
-        <input type="number" step="0.01" id="med_price" name="med_price" placeholder="Enter price" required>
+    .card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
 
-        <button type="submit">Add Medication</button>
-    </form>
+    .card-header {
+        background: linear-gradient(135deg, #2b6b4d, #1f4c37);
+        color: white;
+        padding: 1.5rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .card-header h4 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .card-header p {
+        margin: 0.5rem 0 0;
+        opacity: 0.9;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .form-section {
+        margin-bottom: 2rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .form-section:last-child {
+        border-bottom: none;
+    }
+
+    .section-title {
+        color: #2b6b4d;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #2b6b4d;
+        font-weight: 600;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.8rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #2b6b4d;
+        box-shadow: 0 0 0 0.2rem rgba(43, 107, 77, 0.25);
+    }
+
+    .input-group {
+        position: relative;
+    }
+
+    .input-group-text {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+
+    .image-preview {
+        width: 150px;
+        height: 150px;
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+        overflow: hidden;
+    }
+
+    .image-preview img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: cover;
+    }
+
+    .btn-submit {
+        background-color: #2b6b4d;
+        color: white;
+        padding: 1rem 2rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        width: 100%;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-submit:hover {
+        background-color: #1f4c37;
+        transform: translateY(-2px);
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+
+    .required-field::after {
+        content: "*";
+        color: #dc3545;
+        margin-left: 4px;
+    }
+</style>
+
+<div class="medication-form-container">
+    <div class="card">
+        <div class="card-header">
+            <h4>Add New Medication</h4>
+            <p>Enter medication details below</p>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('new_medication') }}" enctype="multipart/form-data">
+                <!-- Basic Information -->
+                <div class="form-section">
+                    <h5 class="section-title">Basic Information</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="required-field" for="medication_name">Medication Name</label>
+                                <input type="text" id="medication_name" name="medication_name" 
+                                       class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="generic_name">Generic Name</label>
+                                <input type="text" id="generic_name" name="generic_name" 
+                                       class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" class="form-control" 
+                                  rows="3"></textarea>
+                    </div>
+                </div>
+
+                <!-- Pricing and Stock -->
+                <div class="form-section">
+                    <h5 class="section-title">Pricing and Stock</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="required-field" for="price">Price (UGX)</label>
+                                <div class="input-group">
+                                    <input type="number" id="price" name="price" 
+                                           class="form-control" step="0.01" required>
+                                    <span class="input-group-text">UGX</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="required-field" for="stock">Initial Stock</label>
+                                <input type="number" id="stock" name="stock" 
+                                       class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="min_stock">Minimum Stock Level</label>
+                                <input type="number" id="min_stock" name="min_stock" 
+                                       class="form-control">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="expiry_date">Expiry Date</label>
+                                <input type="date" id="expiry_date" name="expiry_date" 
+                                       class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Details -->
+                <div class="form-section">
+                    <h5 class="section-title">Additional Details</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="category">Category</label>
+                                <select id="category" name="category" class="form-control">
+                                    <option value="">Select Category</option>
+                                    <option value="tablets">Tablets</option>
+                                    <option value="syrup">Syrup</option>
+                                    <option value="injection">Injection</option>
+                                    <option value="cream">Cream</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="manufacturer">Manufacturer</label>
+                                <input type="text" id="manufacturer" name="manufacturer" 
+                                       class="form-control">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="image">Product Image</label>
+                        <input type="file" id="image" name="image" 
+                               class="form-control" accept="image/*">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-plus-circle"></i> Add Medication
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Image preview
+    document.getElementById('medication_image').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('imagePreview');
+                preview.innerHTML = `<img src="${e.target.result}" alt="Medication Preview">`;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const requiredFields = document.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.classList.add('is-invalid');
+            } else {
+                field.classList.remove('is-invalid');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields');
+        }
+    });
+</script>
 {% endblock %}

@@ -1,26 +1,306 @@
 {% extends "layout.html" %}
 
 {% block content %}
-<div class="container">
-    <h2 style="text-align: center; color: #2b6b4d;">Edit Prescription</h2>
+<style>
+    .edit-prescription-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background-color: white;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .prescription-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #2b6b4d;
+    }
+
+    .prescription-header h2 {
+        color: #2b6b4d;
+        font-weight: 700;
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .prescription-header p {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .prescription-status {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .status-active {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-completed {
+        background-color: #cce5ff;
+        color: #004085;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #2b6b4d;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control {
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+        border-color: #2b6b4d;
+        box-shadow: 0 0 0 0.2rem rgba(43, 107, 77, 0.25);
+    }
+
+    .medication-info {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+
+    .medication-info h4 {
+        color: #2b6b4d;
+        margin-bottom: 1rem;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .info-item {
+        padding: 0.5rem;
+    }
+
+    .info-label {
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .info-value {
+        font-weight: 600;
+        color: #2b6b4d;
+    }
+
+    .btn-container {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn {
+        padding: 12px 25px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        border-radius: 8px;
+    }
+
+    .btn-success {
+        background-color: #2b6b4d;
+        border: none;
+        flex: 1;
+    }
+
+    .btn-success:hover {
+        background-color: #1f4c37;
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border: none;
+        flex: 1;
+    }
+
+    .dosage-container {
+        background-color: #fff;
+        padding: 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+
+    .notes-section {
+        margin-top: 1.5rem;
+    }
+
+    .prescription-footer {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e0e0e0;
+        font-size: 0.9rem;
+        color: #666;
+    }
+</style>
+
+<div class="edit-prescription-container">
+    <div class="prescription-header">
+        <h2>Edit Prescription</h2>
+        <p>Prescription #{{ prescription.id }}</p>
+        <div class="prescription-status status-{{ prescription.status.lower() }}">
+            {{ prescription.status }}
+        </div>
+    </div>
+
     <form method="POST" action="/edit_prescription/{{ prescription.id }}">
-        <label for="patient_name">Patient Name</label>
-        <input type="text" id="patient_name" name="patient_name" value="{{ prescription.patient_name }}" required>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="patient_name">Patient Name</label>
+                    <input type="text" id="patient_name" name="patient_name" 
+                           class="form-control" value="{{ prescription.patient_name }}" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="patient_age">Patient Age</label>
+                    <input type="number" id="patient_age" name="patient_age" 
+                           class="form-control" value="{{ prescription.patient_age }}">
+                </div>
+            </div>
+        </div>
 
-        <label for="medication_id">Medication</label>
-        <select id="medication_id" name="medication_id" required>
-            {% for med in medications %}
-            <option value="{{ med.id }}" {% if med.id == prescription.medication_id %}selected{% endif %}>{{ med.name }}</option>
-            {% endfor %}
-        </select>
+        <div class="medication-info">
+            <h4>Medication Details</h4>
+            <div class="info-grid">
+                <div class="form-group">
+                    <label for="medication_id">Select Medication</label>
+                    <select id="medication_id" name="medication_id" class="form-control" required>
+                        {% for med in medications %}
+                        <option value="{{ med.id }}" 
+                                {% if med.id == prescription.medication_id %}selected{% endif %}
+                                data-price="{{ med.price }}"
+                                data-stock="{{ med.quantity }}">
+                            {{ med.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Available Stock</div>
+                    <div class="info-value" id="available-stock">-</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Unit Price</div>
+                    <div class="info-value" id="unit-price">-</div>
+                </div>
+            </div>
+        </div>
 
-        <label for="quantity">Quantity</label>
-        <input type="number" id="quantity" name="quantity" value="{{ prescription.quantity }}" required>
+        <div class="dosage-container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="quantity">Quantity</label>
+                        <input type="number" id="quantity" name="quantity" 
+                               class="form-control" value="{{ prescription.quantity }}" required>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="dosage">Dosage</label>
+                        <input type="text" id="dosage" name="dosage" 
+                               class="form-control" value="{{ prescription.dosage }}" 
+                               placeholder="e.g., 1 tablet 3 times daily">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="duration">Duration</label>
+                <input type="text" id="duration" name="duration" 
+                       class="form-control" value="{{ prescription.duration }}" 
+                       placeholder="e.g., 7 days">
+            </div>
+        </div>
 
-        <label for="prescription_date">Prescription Date</label>
-        <input type="date" id="prescription_date" name="prescription_date" value="{{ prescription.prescription_date }}" required>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="prescription_date">Prescription Date</label>
+                    <input type="date" id="prescription_date" name="prescription_date" 
+                           class="form-control" value="{{ prescription.prescription_date }}" required>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="status">Status</label>
+                    <select id="status" name="status" class="form-control">
+                        <option value="Active" {% if prescription.status == 'Active' %}selected{% endif %}>Active</option>
+                        <option value="Completed" {% if prescription.status == 'Completed' %}selected{% endif %}>Completed</option>
+                        <option value="Cancelled" {% if prescription.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+            </div>
+        </div>
 
-        <button type="submit">Update Prescription</button>
+        <div class="notes-section">
+            <div class="form-group">
+                <label for="notes">Additional Notes</label>
+                <textarea id="notes" name="notes" class="form-control" 
+                          rows="3">{{ prescription.notes }}</textarea>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <button type="submit" class="btn btn-success">
+                <i class="fas fa-save"></i> Update Prescription
+            </button>
+            <a href="{{ url_for('list_prescriptions') }}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
     </form>
+
+    <div class="prescription-footer">
+        <p>Last updated: {{ prescription.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+        <p>Created by: {{ prescription.created_by }}</p>
+    </div>
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Update medication info when selection changes
+    document.getElementById('medication_id').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        document.getElementById('available-stock').textContent = selectedOption.dataset.stock;
+        document.getElementById('unit-price').textContent = 'UGX ' + selectedOption.dataset.price;
+    });
+
+    // Trigger initial update
+    document.getElementById('medication_id').dispatchEvent(new Event('change'));
+
+    // Quantity validation
+    document.getElementById('quantity').addEventListener('input', function() {
+        const availableStock = parseInt(document.getElementById('available-stock').textContent);
+        if (this.value > availableStock) {
+            alert('Quantity cannot exceed available stock!');
+            this.value = availableStock;
+        }
+    });
+</script>
 {% endblock %}

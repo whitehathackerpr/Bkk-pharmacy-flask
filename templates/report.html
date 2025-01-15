@@ -1,62 +1,381 @@
-{% extends "layout.html" %}
+{% extends 'layout.html' %}
 
 {% block content %}
-<div class="container">
-    <h2 style="text-align: center; color: #2b6b4d;">Generate Report</h2>
-    
-    <form method="POST" action="/generate_report">
-        <label for="report_type">Select Report Type</label>
-        <select id="report_type" name="report_type" required>
-            <option value="inventory">Inventory Report</option>
-            <option value="prescriptions">Prescription Report</option>
-        </select>
-        
-        <button type="submit">Generate Report</button>
-    </form>
+<style>
+    .reports-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
 
-    {% if report_data %}
-    <h3 style="text-align: center; margin-top: 30px;">{{ report_title }}</h3>
-    <table style="margin-top: 20px;">
-        {% if report_type == 'inventory' %}
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Medication Name</th>
-                <th>Price</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in report_data %}
-            <tr>
-                <td>{{ item.id }}</td>
-                <td>{{ item.name }}</td>
-                <td>${{ item.price }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        {% elif report_type == 'prescriptions' %}
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Patient Name</th>
-                <th>Medication</th>
-                <th>Quantity</th>
-                <th>Prescription Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for prescription in report_data %}
-            <tr>
-                <td>{{ prescription.id }}</td>
-                <td>{{ prescription.patient_name }}</td>
-                <td>{{ prescription.medication_name }}</td>
-                <td>{{ prescription.quantity }}</td>
-                <td>{{ prescription.prescription_date }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        {% endif %}
-    </table>
-    {% endif %}
+    .card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #2b6b4d, #1f4c37);
+        color: white;
+        padding: 1.5rem;
+        position: relative;
+    }
+
+    .card-header h4 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+    }
+
+    .card-header p {
+        margin: 0.5rem 0 0;
+        opacity: 0.9;
+    }
+
+    .card-body {
+        padding: 2rem;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        text-align: center;
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2b6b4d;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .filters-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+
+    .filters-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+
+    .chart-container {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+        height: 400px;
+    }
+
+    .table-responsive {
+        margin-top: 2rem;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .table th {
+        background: #2b6b4d;
+        color: white;
+        padding: 1rem;
+        font-weight: 600;
+    }
+
+    .table td {
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .status-badge {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .status-low {
+        background: #dc3545;
+        color: white;
+    }
+
+    .status-good {
+        background: #28a745;
+        color: white;
+    }
+
+    .export-buttons {
+        margin-bottom: 1.5rem;
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-export {
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-pdf {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-excel {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-export:hover {
+        transform: translateY(-2px);
+        opacity: 0.9;
+    }
+
+    .pagination {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .page-link {
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        background: #f8f9fa;
+        color: #2b6b4d;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .page-link:hover {
+        background: #2b6b4d;
+        color: white;
+    }
+
+    .page-link.active {
+        background: #2b6b4d;
+        color: white;
+    }
+</style>
+
+<div class="reports-container">
+    <!-- Header Card -->
+    <div class="card">
+        <div class="card-header">
+            <h4>{{ report_type }} Report</h4>
+            <p>View and analyze your pharmacy data</p>
+        </div>
+        
+        <div class="card-body">
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_items }}</div>
+                    <div class="stat-label">Total Items</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ low_stock_count }}</div>
+                    <div class="stat-label">Low Stock Items</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">UGX {{ total_value }}</div>
+                    <div class="stat-label">Total Value</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ monthly_sales }}</div>
+                    <div class="stat-label">Monthly Sales</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filters-section">
+                <form method="POST" action="{{ url_for('report') }}" class="filters-grid">
+                    <div class="form-group">
+                        <label for="report_type">Report Type</label>
+                        <select id="report_type" name="report_type" class="form-control">
+                            <option value="medications" {% if report_type == 'Medications' %}selected{% endif %}>
+                                Medications
+                            </option>
+                            <option value="prescriptions" {% if report_type == 'Prescriptions' %}selected{% endif %}>
+                                Prescriptions
+                            </option>
+                            <option value="sales" {% if report_type == 'Sales' %}selected{% endif %}>
+                                Sales
+                            </option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="date_range">Date Range</label>
+                        <select id="date_range" name="date_range" class="form-control">
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="year">This Year</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category" name="category" class="form-control">
+                            <option value="">All Categories</option>
+                            <option value="tablets">Tablets</option>
+                            <option value="syrup">Syrup</option>
+                            <option value="injection">Injection</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary form-control">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Chart -->
+            <div class="chart-container">
+                <canvas id="reportChart"></canvas>
+            </div>
+
+            <!-- Export Buttons -->
+            <div class="export-buttons">
+                <button class="btn-export btn-pdf" onclick="exportPDF()">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </button>
+                <button class="btn-export btn-excel" onclick="exportExcel()">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+            </div>
+
+            <!-- Data Table -->
+            <div class="table-responsive">
+                {% if report_type == 'Medications' %}
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>{{ item.id }}</td>
+                                <td>{{ item.name }}</td>
+                                <td>{{ item.category }}</td>
+                                <td>UGX {{ item.price }}</td>
+                                <td>{{ item.stock }}</td>
+                                <td>
+                                    <span class="status-badge {% if item.stock < 10 %}status-low{% else %}status-good{% endif %}">
+                                        {% if item.stock < 10 %}Low Stock{% else %}In Stock{% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% elif report_type == 'Prescriptions' %}
+                    <!-- Similar table structure for prescriptions -->
+                {% elif report_type == 'Sales' %}
+                    <!-- Similar table structure for sales -->
+                {% else %}
+                    <p>No data available.</p>
+                {% endif %}
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                {% if has_prev %}
+                    <a href="?page={{ page - 1 }}" class="page-link">Previous</a>
+                {% endif %}
+                
+                {% for p in range(1, total_pages + 1) %}
+                    <a href="?page={{ p }}" class="page-link {% if p == page %}active{% endif %}">{{ p }}</a>
+                {% endfor %}
+                
+                {% if has_next %}
+                    <a href="?page={{ page + 1 }}" class="page-link">Next</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Initialize chart
+    const ctx = document.getElementById('reportChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels|tojson }},
+            datasets: [{
+                label: '{{ report_type }}',
+                data: {{ chart_data|tojson }},
+                borderColor: '#2b6b4d',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: '{{ report_type }} Trend'
+                }
+            }
+        }
+    });
+
+    // Export functions
+    function exportPDF() {
+        // Implement PDF export
+        alert('Exporting PDF...');
+    }
+
+    function exportExcel() {
+        // Implement Excel export
+        alert('Exporting Excel...');
+    }
+</script>
 {% endblock %}

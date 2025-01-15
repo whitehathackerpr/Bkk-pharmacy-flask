@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Edit Medication</h2>
+    <form method="POST">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ medication.name }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="generic_name">Generic Name</label>
+            <input type="text" class="form-control" id="generic_name" name="generic_name" value="{{ medication.generic_name }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="category">Category</label>
+            <input type="text" class="form-control" id="category" name="category" value="{{ medication.category }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea class="form-control" id="description" name="description">{{ medication.description }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="price">Price</label>
+            <input type="number" step="0.01" class="form-control" id="price" name="price" value="{{ medication.price }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="stock">Stock</label>
+            <input type="number" class="form-control" id="stock" name="stock" value="{{ medication.stock }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="min_stock">Minimum Stock</label>
+            <input type="number" class="form-control" id="min_stock" name="min_stock" value="{{ medication.min_stock }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="manufacturer">Manufacturer</label>
+            <input type="text" class="form-control" id="manufacturer" name="manufacturer" value="{{ medication.manufacturer }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="expiry_date">Expiry Date</label>
+            <input type="date" class="form-control" id="expiry_date" name="expiry_date" value="{{ medication.expiry_date }}" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Update Medication</button>
+        <a href="{{ url_for('list_inventory') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %} 

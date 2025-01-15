@@ -1,0 +1,174 @@
+{% extends "layout.html" %}
+
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Reports Dashboard</h2>
+    
+    <div class="row">
+        <!-- Sales Summary Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Sales Summary</h5>
+                </div>
+                <div class="card-body">
+                    {% if sales_summary %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Sales</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sale in sales_summary %}
+                                <tr>
+                                    <td>{{ sale.sale_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ sale.total_sales }}</td>
+                                    <td>UGX {{ "{:,.2f}".format(sale.total_revenue) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p>No sales data available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Low Stock Alert Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">Low Stock Alert</h5>
+                </div>
+                <div class="card-body">
+                    {% if low_stock %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Medication</th>
+                                    <th>Current Stock</th>
+                                    <th>Min Stock</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in low_stock %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.stock }}</td>
+                                    <td>{{ item.min_stock }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p>No low stock items.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Top Selling Medications -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Top Selling Medications</h5>
+                </div>
+                <div class="card-body">
+                    {% if top_selling %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Medication</th>
+                                    <th>Quantity Sold</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in top_selling %}
+                                <tr>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.total_quantity }}</td>
+                                    <td>UGX {{ "{:,.2f}".format(item.total_revenue) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p>No sales data available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Prescription Status -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Prescription Status Summary</h5>
+                </div>
+                <div class="card-body">
+                    {% if prescription_summary %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Status</th>
+                                    <th>Count</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in prescription_summary %}
+                                <tr>
+                                    <td>{{ item.status.title() }}</td>
+                                    <td>{{ item.count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p>No prescription data available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Export Buttons -->
+    <div class="row mt-3">
+        <div class="col-12">
+            <div class="btn-group">
+                <a href="{{ url_for('export_report', format='pdf') }}" class="btn btn-primary">
+                    <i class="fas fa-file-pdf"></i> Export as PDF
+                </a>
+                <a href="{{ url_for('export_report', format='excel') }}" class="btn btn-success">
+                    <i class="fas fa-file-excel"></i> Export as Excel
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function exportReport(format) {
+    // Add export functionality here
+    alert('Export as ' + format + ' feature coming soon!');
+}
+</script>
+{% endblock %} 

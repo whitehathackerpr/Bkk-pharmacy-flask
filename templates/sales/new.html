@@ -1,0 +1,143 @@
+{% extends "layout.html" %}
+
+{% block title %}New Sale{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">New Sale</h2>
+    
+    <form method="POST" action="{{ url_for('new_sale') }}" id="saleForm">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="prescription_id" class="form-label">Prescription (Optional)</label>
+                    <select class="form-control" id="prescription_id" name="prescription_id">
+                        <option value="">Select Prescription</option>
+                        {% for prescription in prescriptions %}
+                        <option value="{{ prescription.id }}">
+                            {{ prescription.patient_name }} - {{ prescription.medication_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="medication_id" class="form-label">Medication</label>
+                    <select class="form-control" id="medication_id" name="medication_id" required>
+                        <option value="">Select Medication</option>
+                        {% for med in medications %}
+                        <option value="{{ med.id }}" data-price="{{ med.price }}" data-stock="{{ med.stock }}">
+                            {{ med.name }} (Stock: {{ med.stock }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="quantity" class="form-label">Quantity</label>
+                    <input type="number" class="form-control" id="quantity" name="quantity" required min="1">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="unit_price" class="form-label">Unit Price (UGX)</label>
+                    <input type="number" class="form-control" id="unit_price" name="unit_price" required step="0.01">
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="discount" class="form-label">Discount (UGX)</label>
+                    <input type="number" class="form-control" id="discount" name="discount" value="0" min="0" step="0.01">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="payment_method" class="form-label">Payment Method</label>
+                    <select class="form-control" id="payment_method" name="payment_method" required>
+                        <option value="cash">Cash</option>
+                        <option value="mobile_money">Mobile Money</option>
+                        <option value="card">Card</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="customer_name" class="form-label">Customer Name</label>
+                    <input type="text" class="form-control" id="customer_name" name="customer_name" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="customer_contact" class="form-label">Customer Contact</label>
+                    <input type="text" class="form-control" id="customer_contact" name="customer_contact">
+                </div>
+                
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Notes</label>
+                    <textarea class="form-control" id="notes" name="notes" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Sale Summary</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <p>Subtotal: UGX <span id="subtotal">0.00</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p>Discount: UGX <span id="discount-display">0.00</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Total: UGX <span id="total">0.00</span></strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Complete Sale</button>
+            <a href="{{ url_for('list_sales') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateSaleSummary() {
+    const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+    const unitPrice = parseFloat(document.getElementById('unit_price').value) || 0;
+    const discount = parseFloat(document.getElementById('discount').value) || 0;
+    
+    const subtotal = quantity * unitPrice;
+    const total = subtotal - discount;
+    
+    document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+    document.getElementById('discount-display').textContent = discount.toFixed(2);
+    document.getElementById('total').textContent = total.toFixed(2);
+}
+
+document.getElementById('medication_id').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    if (selected.value) {
+        document.getElementById('unit_price').value = selected.dataset.price;
+        document.getElementById('quantity').max = selected.dataset.stock;
+        updateSaleSummary();
+    }
+});
+
+['quantity', 'unit_price', 'discount'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateSaleSummary);
+});
+
+document.getElementById('saleForm').addEventListener('submit', function(e) {
+    const medicationSelect = document.getElementById('medication_id');
+    const selected = medicationSelect.options[medicationSelect.selectedIndex];
+    const quantity = parseInt(document.getElementById('quantity').value);
+    
+    if (selected.value && quantity > parseInt(selected.dataset.stock)) {
+        e.preventDefault();
+        alert('Quantity cannot exceed available stock!');
+    }
+});
+</script>
+{% endblock %} 
