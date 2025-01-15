@@ -114,7 +114,7 @@ Copyright (c) 2024 4CODEX Technologies
 ## 👥 Leadership
 
 <div align="center">
-  <img src="assets/founder.jpg" alt="Akandwanaho Ivan Alvin" width="150" style="border-radius: 50%"/>
+  <img src="founder.jpg" alt="Akandwanaho Ivan Alvin" width="150" style="border-radius: 50%"/>
   <h3>Akandwanaho Ivan Alvin</h3>
   <p>Founder & CEO, 4CODEX Technologies</p>
 </div>
