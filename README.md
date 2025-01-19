@@ -147,7 +147,7 @@ For enterprise support and custom solutions, please contact our sales team at [s
   <p>Developed with ❤️ by <a href="https://4codex.com">4CODEX Technologies</a></p>
   <p>
     <a href="https://4codex.com">Website</a> •
-    <a href="https://linkedin.com/company/4codex">LinkedIn</a> •
-    <a href="https://twitter.com/4codex">Twitter</a>
+    <a href="https://www.linkedin.com/in/the4codex?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app">LinkedIn</a> •
+    <a href="https://twitter.com/alvin_waho">Twitter</a>
   </p>
 </div>
