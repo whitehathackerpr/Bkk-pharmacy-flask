@@ -1,4 +1,4 @@
-Flask==2.0.1
+Flask==2.2.5
 pyrebase4==4.5.0
 firebase-admin==5.2.0
 requests==2.19.1
