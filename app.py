@@ -909,8 +909,8 @@ def update_sale(sale_id):
         return jsonify({'success': True})
         
     except Exception as e:
-        print(f"Error updating sale: {str(e)}")
-        return jsonify({'success': False, 'message': str(e)})
+        app.logger.error(f"Error updating sale: {str(e)}")
+        return jsonify({'success': False, 'message': 'An internal error has occurred.'})
 
 @app.route('/sales/<int:sale_id>/details')
 @login_required
@@ -930,7 +930,8 @@ def get_sale_details(sale_id):
             return jsonify({'success': True, 'sale': sale})
         return jsonify({'success': False, 'message': 'Sale not found'})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
+        app.logger.error(f"Error fetching sale details: {str(e)}")
+        return jsonify({'success': False, 'message': 'An internal error has occurred.'})
 
 @app.route('/sales/<int:sale_id>/mark-paid', methods=['POST'])
 @login_required
@@ -948,7 +949,8 @@ def mark_sale_paid(sale_id):
         cursor.close()
         return jsonify({'success': True})
     except Exception as e:
-        return jsonify({'success': False, 'message': str(e)})
+        app.logger.error(f"Error marking sale as paid: {str(e)}")
+        return jsonify({'success': False, 'message': 'An internal error has occurred.'})
 
 @app.route('/sales/<int:sale_id>/mark-delivered', methods=['POST'])
 @login_required
@@ -975,8 +977,8 @@ def mark_sale_delivered(sale_id):
         return jsonify({'success': True})
         
     except Exception as e:
-        print(f"Error updating delivery status: {str(e)}")
-        return jsonify({'success': False, 'message': 'Database error'}), 500
+        app.logger.error(f"Error updating delivery status: {str(e)}")
+        return jsonify({'success': False, 'message': 'An internal error has occurred.'}), 500
 
 def log_activity(description, activity_type):
     try:
