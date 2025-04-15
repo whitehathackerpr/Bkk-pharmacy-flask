@@ -11,6 +11,7 @@ import pandas as pd
 from fpdf import FPDF
 from io import BytesIO
 
+
 app = Flask(__name__)
 
 # Database configuration
