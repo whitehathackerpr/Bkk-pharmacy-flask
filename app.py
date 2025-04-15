@@ -1084,4 +1084,5 @@ def export_report(format):
         return jsonify({'error': 'Export failed'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    import os
+    app.run(debug=os.getenv('FLASK_ENV') == 'development')
