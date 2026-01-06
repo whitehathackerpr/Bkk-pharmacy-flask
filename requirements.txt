@@ -1,7 +1,7 @@
 Flask==2.2.5
 pyrebase4==4.5.0
 firebase-admin==5.2.0
-requests==2.32.2
+requests==2.32.4
 urllib3==2.6.0
 six==1.16.0
 pandas==1.3.2
